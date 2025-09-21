@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"sync"
 
+	environment_configuration "github.com/geordym/pendientico/infraestructure/configuration/environment"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -22,32 +22,18 @@ func init() {
 	}
 }
 
-func GetDB() *sql.DB {
+func GetDB(env *environment_configuration.Environment) *sql.DB {
 	once.Do(func() {
-		host := os.Getenv("DB_HOST")
-		port := os.Getenv("DB_PORT")
-		user := os.Getenv("DB_USER")
-		password := os.Getenv("DB_PASSWORD")
-		dbname := os.Getenv("DB_NAME")
-		sslmode := os.Getenv("DB_SSLMODE")
-		schema := os.Getenv("DB_SCHEMA")
-		if schema == "" {
-			schema = "public"
+		// Validar que todos los campos requeridos estén presentes
+		if env.DBHost == "" || env.DBPort == "" || env.DBUser == "" ||
+			env.DBPassword == "" || env.DBName == "" || env.DBSSLMode == "" || env.DBSchema == "" {
+			log.Fatal("Faltan variables de configuración de la base de datos en Environment")
 		}
 
-		if host == "" {
-			host = "localhost"
-		}
-		if port == "" {
-			port = "5432"
-		}
-		if sslmode == "" {
-			sslmode = "disable"
-		}
-
+		// Construir la conexión
 		connStr := fmt.Sprintf(
 			"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s search_path=%s",
-			host, port, user, password, dbname, sslmode, schema,
+			env.DBHost, env.DBPort, env.DBUser, env.DBPassword, env.DBName, env.DBSSLMode, env.DBSchema,
 		)
 
 		var err error
@@ -56,9 +42,11 @@ func GetDB() *sql.DB {
 			log.Fatal("Error conectando a la base de datos:", err)
 		}
 
+		// Configuración de pool
 		DB.SetMaxOpenConns(25)
 		DB.SetMaxIdleConns(5)
 
+		// Probar la conexión
 		if err = DB.Ping(); err != nil {
 			log.Fatal("Error haciendo ping a la base de datos:", err)
 		}

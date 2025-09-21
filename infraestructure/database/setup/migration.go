@@ -3,12 +3,13 @@ package setup
 import (
 	"log"
 
-	database "github.com/geordym/pendientico/configuration"
+	"github.com/geordym/pendientico/infraestructure/configuration/database"
+	environment_configuration "github.com/geordym/pendientico/infraestructure/configuration/environment"
 	"github.com/pressly/goose/v3"
 )
 
-func InitDB() {
-	db := database.GetDB()
+func InitDB(environment environment_configuration.Environment) {
+	db := database.GetDB(&environment)
 
 	// Verificar conexión
 	if err := db.Ping(); err != nil {
@@ -18,7 +19,7 @@ func InitDB() {
 	log.Println("Base de datos inicializada correctamente")
 
 	// Ejecutar migraciones
-	if err := goose.Up(db, "./database/migrations"); err != nil {
+	if err := goose.Up(db, "./infraestructure/database/migrations"); err != nil {
 		log.Fatal("Error ejecutando migraciones:", err)
 	}
 

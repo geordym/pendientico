@@ -1,10 +1,10 @@
 package middlewares
 
 import (
-    "strings"
-    "github.com/labstack/echo/v4"
-	"github.com/geordym/pendientico/configuration/security"
+	"strings"
 
+	"github.com/geordym/pendientico/infraestructure/configuration/security"
+	"github.com/labstack/echo/v4"
 )
 
 
