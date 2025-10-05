@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/geordym/pendientico/domain/model"
 	ports "github.com/geordym/pendientico/domain/ports/out"
+	"github.com/google/uuid"
 	"github.com/labstack/gommon/log"
 )
 
@@ -31,10 +32,17 @@ func (uc *CreateUserUseCase) Execute(cmd CreateUserCommand) error {
 		return err
 	}
 
-	user := model.NewUser(authProviderUserId, cmd.Name, cmd.Phone, cmd.Email)
+	user := model.User{
+		ID:                 uuid.NewString(),
+		AuthProviderUserID: authProviderUserId,
+		Name:               cmd.Name,
+		Phone:              cmd.Phone,
+		Email:              cmd.Email,
+	}
 
 	err = uc.userRepository.SaveUser(user)
 	if err != nil {
+		log.Error("Se produjo un error al crear el usuario")
 		return err
 	}
 

@@ -1,7 +1,8 @@
 package ports_out
 
-import domain "github.com/geordym/pendientico/domain/model"
+import model "github.com/geordym/pendientico/domain/model"
 
 type UserRepository interface {
-	SaveUser(user domain.User) error
+	SaveUser(user model.User) error
+	FindUserByAuthProviderUserId(authProviderUserId string) (*model.User, error)
 }

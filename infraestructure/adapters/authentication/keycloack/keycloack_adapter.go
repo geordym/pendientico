@@ -2,10 +2,12 @@ package adapters
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Nerzal/gocloak/v13"
 	ports_out "github.com/geordym/pendientico/domain/ports/out"
 	configuration "github.com/geordym/pendientico/infraestructure/configuration/environment"
+	"github.com/geordym/pendientico/infraestructure/middlewares"
 )
 
 type KeycloakAdapter struct {
@@ -40,6 +42,25 @@ func (k *KeycloakAdapter) SaveUser(email string, password string) (string, error
 	}
 
 	return userID, nil
+}
+
+func (k *KeycloakAdapter) GetUserAuthProviderIdLogged(ctx context.Context) (string, error) {
+	claimsInterface := ctx.Value(middlewares.ClaimsKey{})
+	if claimsInterface == nil {
+		return "", fmt.Errorf("claims not found in context")
+	}
+
+	claims, ok := claimsInterface.(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("claims have wrong type")
+	}
+
+	sub, ok := claims["sub"].(string)
+	if !ok || sub == "" {
+		return "", fmt.Errorf("sub claim not found")
+	}
+
+	return sub, nil
 }
 
 func NewKeycloakAdapterFromEnv(env configuration.Environment) (ports_out.AuthenticationProviderCommunication, error) {

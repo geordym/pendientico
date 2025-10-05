@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	usecase "github.com/geordym/pendientico/application/usecases"
+	usecase "github.com/geordym/pendientico/application/usecases/users"
 	"github.com/labstack/echo/v4"
 )
 

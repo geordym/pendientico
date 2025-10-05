@@ -5,6 +5,7 @@ import (
 
 	application_factory "github.com/geordym/pendientico/application/factory"
 	environment_configuration "github.com/geordym/pendientico/infraestructure/configuration/environment"
+	"github.com/geordym/pendientico/infraestructure/configuration/security"
 
 	adapters "github.com/geordym/pendientico/infraestructure/adapters/authentication/keycloack"
 	"github.com/geordym/pendientico/infraestructure/adapters/persistence/postgres/configuration"
@@ -33,9 +34,15 @@ func main() {
 	}
 
 	userRepository := postgres_factory.NewUserRepository(gormFactory.DB)
-	createUserUseCase := application_factory.NewCreateUserUseCase(userRepository, authenticationProviderCommunication)
+	workspaceRepository := postgres_factory.NewWorkspaceRepository(gormFactory.DB)
+	workspaceUserRepository := postgres_factory.NewWorkspaceUsersRepository(gormFactory.DB)
+	workspaceContactRepository := postgres_factory.NewWorkspaceContactRepository(gormFactory.DB)
 
-	//security.InitKeycloak()
+	createUserUseCase := application_factory.NewCreateUserUseCase(userRepository, authenticationProviderCommunication)
+	createWorkspaceUseCase := application_factory.NewCreateWorkspaceUseCase(workspaceRepository, workspaceUserRepository, userRepository, authenticationProviderCommunication)
+	createWorkspaceContactUseCase := application_factory.NewCreateWorkspaceContactUseCase(workspaceContactRepository)
+
+	security.InitKeycloak()
 
 	e := echo.New()
 
@@ -44,7 +51,8 @@ func main() {
 	e.Use(middleware.CORS())
 
 	userHandler := handler.NewUserHandler(*createUserUseCase)
+	workspacesHandler := handler.NewWorkspaceHandler(*createWorkspaceUseCase, *createWorkspaceContactUseCase)
 
-	routes.Init(e, userHandler)
+	routes.Init(e, userHandler, workspacesHandler)
 	e.Logger.Fatal(e.Start(":8085"))
 }
